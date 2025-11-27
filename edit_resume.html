@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>แก้ไขเรซูเม่ — ยอดชาญ สุภาพรรณ</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* small tweaks for the editor page */
+    .editor{max-width:900px;margin:24px auto;padding:18px;background:var(--card);border-radius:10px}
+    .form-row{display:flex;gap:12px;margin-bottom:12px}
+    .form-row .col{flex:1}
+    label{display:block;font-weight:600;margin-bottom:6px}
+    input[type=text], input[type=email], textarea{width:100%;padding:8px;border:1px solid #e6eef0;border-radius:8px;font-size:14px}
+    textarea{min-height:100px}
+    .small{font-size:13px;color:var(--muted)}
+    .actions{display:flex;gap:12px;align-items:center;margin-top:12px}
+    .btn-secondary{background:transparent;border:1px solid #d1d5db;padding:8px 12px;border-radius:8px}
+    .remove-btn{background:#fee2e2;border:1px solid #fecaca;padding:6px 8px;border-radius:8px;color:#b91c1c;cursor:pointer}
+    .add-btn{background:#ecfeff;border:1px solid #99f6e4;padding:6px 8px;border-radius:8px;color:#064e3b;cursor:pointer}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-grid">
+      <div>
+        <h1 class="name">แก้ไขเรซูเม่</h1>
+        <p class="small">แก้ไขข้อมูลแล้วกดบันทึกเพื่อดูตัวอย่างที่หน้าแรก</p>
+      </div>
+      <div>
+        <a class="btn" href="/index.html">ดูตัวอย่าง</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="editor">
+      <form id="edit-form">
+        <div class="form-row">
+          <div class="col">
+            <label for="name">ชื่อ</label>
+            <input id="name" name="name" type="text">
+          </div>
+          <div class="col">
+            <label for="title">ตำแหน่ง / คำอธิบายสั้น</label>
+            <input id="title" name="title" type="text">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col">
+            <label for="location">ที่อยู่ (location)</label>
+            <input id="location" name="location" type="text">
+          </div>
+          <div class="col">
+            <label for="avatar">ตัวอักษร Avatar (เช่น YS)</label>
+            <input id="avatar" name="avatar" type="text">
+          </div>
+        </div>
+
+        <h3>รูปโปรไฟล์</h3>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+          <input id="avatar-file" name="avatar-file" type="file" accept="image/*">
+          <div id="avatar-preview" style="width:96px;height:96px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#eef;">
+            <!-- preview inserted here -->
+          </div>
+          <div class="small">ถ้าระบุรูป ระบบจะใช้รูปแทนตัวอักษร Avatar</div>
+        </div>
+
+        <h3>ติดต่อ</h3>
+        <div class="form-row">
+          <div class="col">
+            <label for="email">อีเมล</label>
+            <input id="email" name="email" type="email">
+          </div>
+          <div class="col">
+            <label for="phone">เบอร์โทร</label>
+            <input id="phone" name="phone" type="text">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="col">
+            <label for="github">GitHub (URL)</label>
+            <input id="github" name="github" type="text">
+          </div>
+          <div class="col">
+            <label for="portfolio">Portfolio (URL)</label>
+            <input id="portfolio" name="portfolio" type="text">
+          </div>
+        </div>
+
+        <h3>สรุปย่อ</h3>
+        <textarea id="summary" name="summary"></textarea>
+
+        <h3>การศึกษา</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <button id="add-edu" type="button" class="add-btn">+ เพิ่มการศึกษา</button>
+          <div class="small">เพิ่ม/ลบรายการการศึกษาได้ตามต้องการ</div>
+        </div>
+        <div id="edu-list" style="display:grid;grid-template-columns:1fr;gap:12px">
+          <!-- dynamic education items -->
+        </div>
+
+        <h3>ทักษะ (ชื่อและเปอร์เซนต์)</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <button id="add-skill" type="button" class="add-btn">+ เพิ่มทักษะ</button>
+          <div class="small">สามารถเพิ่ม/ลบทักษะได้ตามต้องการ</div>
+        </div>
+        <div id="skills-list" class="form-row" style="flex-direction:column">
+          <!-- dynamic skill rows inserted here -->
+        </div>
+
+        <h3>ประสบการณ์</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <button id="add-exp" type="button" class="add-btn">+ เพิ่มประสบการณ์</button>
+          <div class="small">เพิ่มรายการประสบการณ์ได้ไม่จำกัด</div>
+        </div>
+        <div id="exp-list" style="display:grid;grid-template-columns:1fr;gap:12px">
+          <!-- dynamic experience items -->
+        </div>
+
+        <h3>ผลงาน</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <button id="add-proj" type="button" class="add-btn">+ เพิ่มผลงาน</button>
+          <div class="small">เพิ่มผลงานได้ตามต้องการ</div>
+        </div>
+        <div id="proj-list" style="display:grid;grid-template-columns:1fr;gap:12px">
+          <!-- dynamic project items -->
+        </div>
+
+        <div class="actions">
+          <button id="save" class="btn">บันทึก</button>
+          <button id="reset" type="button" class="btn-secondary">คืนค่าเริ่มต้น</button>
+          <div class="small">หรือ <a id="export-json" href="#">ดาวน์โหลด JSON</a> • <a id="export-html" href="#">ดาวน์โหลดหน้า index.html</a></div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="scripts.js"></script>
+  <script>
+    (function(){
+      const api = window.resumeStorage;
+      if(!api) return;
+
+      // Helpers to build DOM elements for dynamic lists
+      function el(tag, attrs={}, children=[]){
+        const e = document.createElement(tag);
+        Object.keys(attrs).forEach(k => {
+          if(k === 'class') e.className = attrs[k];
+          else if(k === 'html') e.innerHTML = attrs[k];
+          else e.setAttribute(k, attrs[k]);
+        });
+        (children||[]).forEach(c => { if(typeof c === 'string') e.appendChild(document.createTextNode(c)); else e.appendChild(c); });
+        return e;
+      }
+
+      // small toast helper for feedback after save
+      function showToast(msg, timeout=1400){
+        const t = document.createElement('div');
+        t.textContent = msg;
+        Object.assign(t.style, {position:'fixed',right:'16px',bottom:'16px',background:'rgba(0,0,0,0.85)',color:'#fff',padding:'10px 14px',borderRadius:'8px',boxShadow:'0 6px 18px rgba(0,0,0,0.2)',zIndex:9999,fontSize:'14px'});
+        document.body.appendChild(t);
+        setTimeout(()=>{ t.style.opacity = '0'; setTimeout(()=> t.remove(), 250); }, timeout);
+      }
+
+      // Skill row
+      function createSkillRow(name='', level=''){
+        const wrapper = el('div',{class:'skill-row', style:'display:flex;gap:8px;margin-bottom:8px;align-items:center'});
+        const nameInput = el('input',{type:'text', placeholder:'เช่น HTML/CSS', value:name});
+        const lvlInput = el('input',{type:'text', placeholder:'% เช่น 90', value:level, style:'width:96px'});
+        const remove = el('button',{type:'button', class:'remove-btn'},["ลบ"]);
+        remove.addEventListener('click', ()=> wrapper.remove());
+        wrapper.appendChild(nameInput); wrapper.appendChild(lvlInput); wrapper.appendChild(remove);
+        return wrapper;
+      }
+
+      // Experience item
+      function createExpItem(data){
+        data = data || {};
+        const wrap = el('div',{class:'exp-item', style:'padding:12px;border:1px solid #eef;border-radius:8px;background:#fff'});
+        const row1 = el('div',{style:'display:flex;gap:8px;margin-bottom:8px'});
+        const title = el('input',{type:'text', placeholder:'ตำแหน่ง', value:data.title||''});
+        const company = el('input',{type:'text', placeholder:'บริษัท', value:data.company||''});
+        row1.appendChild(title); row1.appendChild(company);
+        const row2 = el('div',{style:'display:flex;gap:8px;margin-bottom:8px'});
+        const period = el('input',{type:'text', placeholder:'ช่วงเวลา', value:data.period||''});
+        const location = el('input',{type:'text', placeholder:'สถานที่', value:data.location||''});
+        row2.appendChild(period); row2.appendChild(location);
+        const bullets = el('textarea',{},[]); bullets.placeholder = 'หัวข้อ (แยกบรรทัด)'; bullets.value = (data.bullets||[]).join('\n');
+        const remove = el('button',{type:'button', class:'remove-btn', style:'margin-top:8px'},['ลบรายการ']);
+        remove.addEventListener('click', ()=> wrap.remove());
+        wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(bullets); wrap.appendChild(remove);
+        return wrap;
+      }
+
+      // Education item
+      function createEduItem(data){
+        data = data || {};
+        const wrap = el('div',{class:'edu-item', style:'padding:12px;border:1px solid #eef;border-radius:8px;background:#fff'});
+        const row1 = el('div',{style:'display:flex;gap:8px;margin-bottom:8px'});
+        const degree = el('input',{type:'text', placeholder:'วุฒิ/สาขา', value:data.degree || ''});
+        const institution = el('input',{type:'text', placeholder:'สถาบัน/มหาวิทยาลัย', value:data.institution || ''});
+        row1.appendChild(degree); row1.appendChild(institution);
+        const row2 = el('div',{style:'display:flex;gap:8px;margin-bottom:8px'});
+        const period = el('input',{type:'text', placeholder:'ช่วงเวลา เช่น 2016 - 2020', value:data.period || ''});
+        const location = el('input',{type:'text', placeholder:'สถานที่', value:data.location || ''});
+        row2.appendChild(period); row2.appendChild(location);
+        const bullets = el('textarea',{},[]); bullets.placeholder = 'รายละเอียด/สาธิต (แยกบรรทัด)'; bullets.value = (data.bullets||[]).join('\n');
+        const remove = el('button',{type:'button', class:'remove-btn', style:'margin-top:8px'},['ลบรายการ']);
+        remove.addEventListener('click', ()=> wrap.remove());
+        wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(bullets); wrap.appendChild(remove);
+        return wrap;
+      }
+
+      // Project item
+      function createProjItem(data){
+        data = data || {};
+        const wrap = el('div',{class:'proj-item', style:'padding:12px;border:1px solid #eef;border-radius:8px;background:#fff'});
+        const title = el('input',{type:'text', placeholder:'ชื่อผลงาน', value:data.title||''});
+        const desc = el('textarea',{},[]); desc.placeholder = 'คำอธิบาย'; desc.value = data.desc||'';
+        const remove = el('button',{type:'button', class:'remove-btn', style:'margin-top:8px'},['ลบรายการ']);
+        remove.addEventListener('click', ()=> wrap.remove());
+        wrap.appendChild(title); wrap.appendChild(desc); wrap.appendChild(remove);
+        return wrap;
+      }
+
+      // Fill editor from storage
+      function fill(){
+        const data = api.load();
+        document.getElementById('name').value = data.name || '';
+        document.getElementById('title').value = data.title || '';
+        document.getElementById('location').value = data.location || '';
+        document.getElementById('avatar').value = data.avatar || '';
+        document.getElementById('email').value = data.contact.email || '';
+        document.getElementById('phone').value = data.contact.phone || '';
+        document.getElementById('github').value = data.contact.github || '';
+        document.getElementById('portfolio').value = data.contact.portfolio || '';
+        document.getElementById('summary').value = data.summary || '';
+        // populate education
+        const eduRoot = document.getElementById('edu-list');
+        eduRoot.innerHTML = '';
+        const edu = data.education || [];
+        if(edu.length === 0) edu.push({});
+        edu.forEach(e => eduRoot.appendChild(createEduItem(e)));
+
+        // avatar preview
+        const preview = document.getElementById('avatar-preview');
+        preview.innerHTML = '';
+        if(data.avatarImage){
+          const img = document.createElement('img'); img.src = data.avatarImage; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; preview.appendChild(img);
+        } else {
+          preview.textContent = data.avatar || (data.name||'').split(' ').map(s=>s[0]).slice(0,2).join('');
+        }
+
+        // populate skills
+        const skillsRoot = document.getElementById('skills-list');
+        skillsRoot.innerHTML = '';
+        const skills = data.skills || [];
+        if(skills.length===0) skills.push({name:'', level:''});
+        skills.forEach(s => skillsRoot.appendChild(createSkillRow(s.name, s.level)));
+
+        // populate experiences
+        const expRoot = document.getElementById('exp-list'); expRoot.innerHTML = '';
+        const exps = data.experience || [];
+        if(exps.length===0) exps.push({});
+        exps.forEach(e => expRoot.appendChild(createExpItem(e)));
+
+        // populate projects
+        const projRoot = document.getElementById('proj-list'); projRoot.innerHTML = '';
+        const projs = data.projects || [];
+        if(projs.length===0) projs.push({});
+        projs.forEach(p => projRoot.appendChild(createProjItem(p)));
+      }
+
+      // Collect data from editor DOM
+      function collect(){
+        const data = api.load();
+        data.name = document.getElementById('name').value;
+        data.title = document.getElementById('title').value;
+        data.location = document.getElementById('location').value;
+        data.avatar = document.getElementById('avatar').value;
+        data.contact.email = document.getElementById('email').value;
+        data.contact.phone = document.getElementById('phone').value;
+        data.contact.github = document.getElementById('github').value;
+        data.contact.portfolio = document.getElementById('portfolio').value;
+        data.summary = document.getElementById('summary').value;
+        
+        // education
+        data.education = [];
+        document.querySelectorAll('#edu-list .edu-item').forEach(item => {
+          const inputs = item.querySelectorAll('input');
+          const degree = (inputs[0] && inputs[0].value.trim()) || '';
+          if(!degree) return; // skip empty
+          const institution = (inputs[1] && inputs[1].value.trim()) || '';
+          const period = (inputs[2] && inputs[2].value.trim()) || '';
+          const location = (inputs[3] && inputs[3].value.trim()) || '';
+          const bullets = (item.querySelector('textarea') && item.querySelector('textarea').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+          data.education.push({degree, institution, period, location, bullets});
+        });
+
+        // skills
+        data.skills = [];
+        document.querySelectorAll('#skills-list .skill-row').forEach(row => {
+          const inputs = row.querySelectorAll('input');
+          const name = (inputs[0] && inputs[0].value.trim()) || '';
+          const lvl = parseInt((inputs[1] && inputs[1].value) || 0) || 0;
+          if(name) data.skills.push({name, level:lvl});
+        });
+
+        // experiences
+        data.experience = [];
+        document.querySelectorAll('#exp-list .exp-item').forEach(item => {
+          const inputs = item.querySelectorAll('input');
+          const title = (inputs[0] && inputs[0].value.trim()) || '';
+          if(!title) return; // skip empty
+          const company = (inputs[1] && inputs[1].value.trim()) || '';
+          const period = (inputs[2] && inputs[2].value.trim()) || '';
+          const location = (inputs[3] && inputs[3].value.trim()) || '';
+          const bullets = (item.querySelector('textarea') && item.querySelector('textarea').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+          data.experience.push({title, company, period, location, bullets});
+        });
+
+        // projects
+        data.projects = [];
+        document.querySelectorAll('#proj-list .proj-item').forEach(item => {
+          const title = (item.querySelector('input') && item.querySelector('input').value.trim()) || '';
+          const desc = (item.querySelector('textarea') && item.querySelector('textarea').value.trim()) || '';
+          if(title) data.projects.push({title, desc});
+        });
+
+        return data;
+      }
+
+      // Add button handlers
+      document.getElementById('add-edu').addEventListener('click', function(){
+        document.getElementById('edu-list').appendChild(createEduItem());
+      });
+      
+      document.getElementById('add-skill').addEventListener('click', function(){
+        document.getElementById('skills-list').appendChild(createSkillRow());
+      });
+      document.getElementById('add-exp').addEventListener('click', function(){
+        document.getElementById('exp-list').appendChild(createExpItem({}));
+      });
+      document.getElementById('add-proj').addEventListener('click', function(){
+        document.getElementById('proj-list').appendChild(createProjItem({}));
+      });
+
+      // Save handler (handles avatar file if present) — save in-place and show confirmation
+      document.getElementById('save').addEventListener('click', function(e){
+        e.preventDefault();
+        const newData = collect();
+        const fileInput = document.getElementById('avatar-file');
+        const f = fileInput.files && fileInput.files[0];
+
+        function afterSave(){
+          // render in any open preview immediately (saveData broadcasts)
+          try{ api.render(); }catch(e){}
+          showToast('บันทึกเรียบร้อย');
+        }
+
+        if(f){
+          const reader = new FileReader();
+          reader.onload = function(ev){
+            newData.avatarImage = ev.target.result; // data URL
+            api.save(newData);
+            afterSave();
+          };
+          reader.readAsDataURL(f);
+        } else {
+          // keep existing avatarImage if any
+          api.save(newData);
+          afterSave();
+        }
+      });
+
+      // preview selected file immediately
+      document.getElementById('avatar-file').addEventListener('change', function(){
+        const f = this.files && this.files[0];
+        const preview = document.getElementById('avatar-preview'); preview.innerHTML='';
+        if(!f) return;
+        const r = new FileReader(); r.onload = function(ev){ const img = document.createElement('img'); img.src = ev.target.result; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; preview.appendChild(img) };
+        r.readAsDataURL(f);
+      });
+
+      document.getElementById('reset').addEventListener('click', function(){
+        if(!confirm('คืนค่าเริ่มต้น? ข้อมูลปัจจุบันจะหาย')) return;
+        // clear storage
+        localStorage.removeItem('resume_data_v1');
+        location.reload();
+      });
+
+      document.getElementById('export-json').addEventListener('click', function(e){
+        e.preventDefault();
+        const data = api.load();
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'resume.json'; a.click(); URL.revokeObjectURL(url);
+      });
+
+      // Export a static index.html file populated with current data
+      document.getElementById('export-html').addEventListener('click', function(e){
+        e.preventDefault();
+        const data = collect();
+        const html = buildIndexHtml(data);
+        const blob = new Blob([html], {type:'text/html'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'index.html'; a.click(); URL.revokeObjectURL(url);
+      });
+
+      // Build a minimal index.html populated with resume data (links to styles.css)
+      function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      function buildIndexHtml(data){
+        // Build education HTML
+        const eduHtml = (data.education||[]).map(item => {
+          const bullets = (item.bullets||[]).map(b => '<li>'+escapeHtml(b)+'</li>').join('');
+          const meta = escapeHtml((item.period||'') + (item.location ? ' • ' + item.location : ''));
+          return `<article class="job"><h3>${escapeHtml((item.degree||'') + (item.institution ? ' — ' + item.institution : ''))}</h3>${meta?'<p class="meta">'+meta+'</p>':''}${bullets?'<ul>'+bullets+'</ul>':''}</article>`;
+        }).join('\n');
+
+        // Skills
+        const skillsHtml = (data.skills||[]).map(s => '<li><span>'+escapeHtml(s.name)+'</span><div class="bar"><span style="width:'+((s.level||0))+'%"></span></div></li>').join('\n');
+
+        // Experience
+        const expHtml = (data.experience||[]).map(it => {
+          const bullets = (it.bullets||[]).map(b => '<li>'+escapeHtml(b)+'</li>').join('');
+          return `<article class="job"><h3>${escapeHtml(it.title+' — '+it.company)}</h3><p class="meta">${escapeHtml(it.period+' • '+it.location)}</p><ul>${bullets}</ul></article>`;
+        }).join('\n');
+
+        // Projects
+        const projHtml = (data.projects||[]).map(p => `<article class="project"><h4>${escapeHtml(p.title)}</h4><p>${escapeHtml(p.desc)}</p></article>`).join('\n');
+
+        // Avatar (if image data URL, write img tag)
+        const avatarHtml = data.avatarImage ? `<div id="res-avatar" class="avatar"><img src="${data.avatarImage}" alt="${escapeHtml(data.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>` : `<div id="res-avatar" class="avatar">${escapeHtml(data.avatar || (data.name||'').split(' ').map(s=>s[0]).slice(0,2).join(''))}</div>`;
+
+        // Compose final HTML
+        return `<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${escapeHtml(data.name||'Resume')}</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header"><div class="container header-grid"><div class="hero"><h1 id="res-name" class="name">${escapeHtml(data.name)}</h1><p id="res-title" class="title">${escapeHtml(data.title)}</p><p id="res-location" class="location">${escapeHtml(data.location)} • <a href="#contact">ติดต่อ</a></p></div></div></header>
+  <main class="container main-grid"><aside class="sidebar"><section class="profile profile-card">${avatarHtml}<h3 id="profile-name" class="profile-name">${escapeHtml(data.name)}</h3><p class="small" id="profile-title">${escapeHtml(data.title)}</p><h3>ติดต่อ</h3><ul class="contact-list"><li><strong>Email:</strong> <a id="res-email" href="mailto:${escapeHtml(data.contact.email)}">${escapeHtml(data.contact.email)}</a></li><li><strong>โทร:</strong> <a id="res-phone" href="tel:${escapeHtml(data.contact.phone)}">${escapeHtml(data.contact.phone)}</a></li><li><strong>GitHub:</strong> <a id="res-github" href="${escapeHtml(data.contact.github)}">${escapeHtml(data.contact.github.replace(/^https?:\/\//,''))}</a></li><li><strong>Portfolio:</strong> <a id="res-portfolio" href="${escapeHtml(data.contact.portfolio)}">${escapeHtml(data.contact.portfolio.replace(/^https?:\/\//,''))}</a></li></ul></section><section class="skills"><h3>ทักษะ</h3><ul id="res-skills" class="skill-list">${skillsHtml}</ul></section><section class="education"><h3>การศึกษา</h3><div id="res-education">${eduHtml}</div></section></aside><section class="content"><section class="experience"><h2>ประสบการณ์ทำงาน</h2><div id="res-experience">${expHtml}</div></section><section class="projects"><h2>ผลงานเด่น</h2><div id="res-projects" class="project-list">${projHtml}</div></section><section class="summary"><h2>สรุปย่อ</h2><p id="res-summary">${escapeHtml(data.summary)}</p></section><section id="contact" class="contact"><h2>ติดต่อ</h2><p id="res-contact-text">ถ้าต้องการพูดคุยเกี่ยวกับงานหรือโอกาสการร่วมงาน โปรดส่งอีเมลมาที่ <a id="res-contact-email" href="mailto:${escapeHtml(data.contact.email)}">${escapeHtml(data.contact.email)}</a> หรือเชื่อมต่อผ่าน <a id="res-contact-linkedin" href="${escapeHtml(data.contact.linkedin)}">LinkedIn</a>.</p></section></section></main><footer class="site-footer"><div class="container"><p>© ${new Date().getFullYear()} ${escapeHtml(data.name||'')}</p></div></footer></body></html>`;
+      }
+
+      // Initialize
+      fill();
+    })();
+  </script>
+</body>
+</html>

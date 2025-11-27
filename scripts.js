@@ -1,0 +1,251 @@
+// scripts.js — load/save resume data to localStorage and render on index.html
+(function(){
+  const STORAGE_KEY = 'resume_data_v1';
+  const BROADCAST_CHANNEL = 'resume_updates';
+  let bc = null;
+  try{
+    bc = new BroadcastChannel(BROADCAST_CHANNEL);
+  }catch(e){
+    bc = null; // BroadcastChannel not available
+  }
+
+  const defaultData = {
+    name: 'Yodchan Suphaphan',
+    title: 'Frontend Developer & UI Designer',
+    location: 'กรุงเทพมหานคร, ประเทศไทย',
+    avatar: 'YS',
+    avatarImage: null, // data URL (base64) for profile image
+    contact: {
+      email: 'you@example.com',
+      phone: '0967301189',
+      github: 'https://github.com/username',
+      portfolio: 'https://example.com',
+      linkedin: '#'
+    },
+    summary: 'นักพัฒนาฝั่งหน้า (Frontend) ที่ชอบออกแบบ UI และสร้างประสบการณ์ผู้ใช้ที่ใช้งานง่าย มีประสบการณ์ทำงานกับ React, HTML, CSS และระบบ REST API',
+    education: [
+      {
+        degree: 'ปริญญาตรี คอมพิวเตอร์',
+        institution: 'มหาวิทยาลัยตัวอย่าง',
+        period: '2016 - 2020',
+        location: 'กรุงเทพมหานคร',
+        bullets: ['เกรดเฉลี่ย 3.50', 'กิจกรรม: ทีมซอฟต์แวร์']
+      }
+    ],
+    skills: [
+      {name:'HTML/CSS', level:95},
+      {name:'JavaScript / React', level:85},
+      {name:'UI / Figma', level:80},
+      {name:'Node.js / API', level:70}
+    ],
+    experience: [
+      {
+        title:'Frontend Developer',
+        company:'บริษัทตัวอย่าง',
+        period:'มิ.ย. 2021 - ปัจจุบัน',
+        location:'กรุงเทพมหานคร',
+        bullets:[
+          'พัฒนา UI ด้วย React และจัดการ state ด้วย Redux / Context',
+          'ออกแบบและปรับปรุงประสิทธิภาพเว็บไซต์ให้โหลดเร็วขึ้น 30%',
+          'ร่วมออกแบบ UX และทำ prototype ด้วย Figma'
+        ]
+      },
+      {
+        title:'Junior Web Developer',
+        company:'บริษัทต้น',
+        period:'ม.ค. 2020 - พ.ค. 2021',
+        location:'กรุงเทพมหานคร',
+        bullets:[
+          'เขียน HTML/CSS ที่เข้ากับมาตรฐาน Responsive และเข้าถึงได้ (accessibility)',
+          'ร่วมพัฒนาแอปพลิเคชันเว็บบน Node.js สำหรับระบบภายใน'
+        ]
+      }
+    ],
+    projects:[
+      {title:'ระบบจองเวลาออนไลน์', desc:'ออกแบบ UI/UX และพัฒนา frontend ให้ลูกค้าสามารถจองบริการได้อย่างราบรื่น รองรับมือถือและเดสก์ท็อป'},
+      {title:'แดชบอร์ดวิเคราะห์', desc:'สร้างแดชบอร์ดด้วย React + D3 เพื่อแสดงข้อมูลเชิงลึกและชาร์ตต่าง ๆ'}
+    ]
+  };
+
+  function loadData(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return defaultData;
+      return JSON.parse(raw);
+    }catch(e){
+      console.warn('Could not parse resume data, using defaults', e);
+      return defaultData;
+    }
+  }
+
+  function saveData(data){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      // Immediately re-render the current page (covers same-tab saves)
+      try{ render(); }catch(e){}
+      // Broadcast update to other tabs/windows (if available)
+      try{ if(bc) bc.postMessage({type:'updated'}); }catch(e){}
+      return true;
+    }catch(e){
+      console.error('Failed to save resume data', e);
+      return false;
+    }
+  }
+
+  function el(id){ return document.getElementById(id); }
+
+  function render(){
+    const data = loadData();
+
+    // header / basic and profile
+    if(el('res-name')) el('res-name').textContent = data.name;
+    if(el('profile-name')) el('profile-name').textContent = data.name;
+    if(el('res-title')) el('res-title').textContent = data.title;
+    if(el('profile-title')) el('profile-title').textContent = data.title;
+    if(el('res-location')) el('res-location').textContent = data.location + ' • ';
+    if(el('res-avatar')){
+      const root = el('res-avatar');
+      if(data.avatarImage){
+        // render image
+        root.innerHTML = '';
+        const img = document.createElement('img');
+        img.id = 'res-avatar-img';
+        img.src = data.avatarImage;
+        img.alt = data.name || 'Avatar';
+        root.appendChild(img);
+      } else {
+        root.innerHTML = '';
+        root.textContent = data.avatar || (data.name||'').split(' ').map(s=>s[0]).slice(0,2).join('');
+      }
+    }
+
+    // contact
+    if(el('res-email')){ el('res-email').textContent = data.contact.email; el('res-email').href = 'mailto:'+data.contact.email }
+    if(el('res-phone')){ el('res-phone').textContent = data.contact.phone; el('res-phone').href = 'tel:'+data.contact.phone }
+    if(el('res-github')){ el('res-github').textContent = data.contact.github.replace(/^https?:\/\//,''); el('res-github').href = data.contact.github }
+    if(el('res-portfolio')){ el('res-portfolio').textContent = data.contact.portfolio.replace(/^https?:\/\//,''); el('res-portfolio').href = data.contact.portfolio }
+    if(el('res-contact-email')){ el('res-contact-email').textContent = data.contact.email; el('res-contact-email').href = 'mailto:'+data.contact.email }
+    if(el('res-contact-linkedin')){ el('res-contact-linkedin').href = data.contact.linkedin }
+
+    // summary & education
+    if(el('res-summary')) el('res-summary').innerHTML = data.summary;
+    
+    // education: if array, render each item like experience; if legacy string, print it
+    const eduRoot = el('res-education');
+    if(eduRoot){
+      eduRoot.innerHTML = '';
+      if(Array.isArray(data.education)){
+        data.education.forEach(item => {
+          const a = document.createElement('article');
+          a.className = 'job'; // reuse job styling
+          const h = document.createElement('h3');
+          h.textContent = (item.degree || '') + (item.institution ? ' — ' + item.institution : '');
+          const meta = document.createElement('p'); meta.className = 'meta';
+          meta.textContent = (item.period || '') + (item.location ? ' • ' + item.location : '');
+          a.appendChild(h);
+          if(meta.textContent) a.appendChild(meta);
+          if(item.bullets && item.bullets.length){
+            const ul = document.createElement('ul');
+            item.bullets.forEach(b => { const li = document.createElement('li'); li.textContent = b; ul.appendChild(li); });
+            a.appendChild(ul);
+          }
+          eduRoot.appendChild(a);
+        });
+      } else {
+        // legacy HTML string
+        eduRoot.innerHTML = data.education || '';
+      }
+    }
+
+    // skills
+    const skillsRoot = el('res-skills');
+    if(skillsRoot){
+      skillsRoot.innerHTML = '';
+      data.skills.forEach(s => {
+        const li = document.createElement('li');
+        const name = document.createElement('span'); name.textContent = s.name;
+        const bar = document.createElement('div'); bar.className='bar';
+        const barInner = document.createElement('span'); barInner.style.width = (s.level||0)+'%';
+        bar.appendChild(barInner);
+        li.appendChild(name); li.appendChild(bar);
+        skillsRoot.appendChild(li);
+      })
+    }
+
+    // experience
+    const expRoot = el('res-experience');
+    if(expRoot){
+      expRoot.innerHTML = '';
+      data.experience.forEach(item => {
+        const a = document.createElement('article'); a.className='job';
+        const h = document.createElement('h3'); h.textContent = item.title + ' — ' + item.company;
+        const meta = document.createElement('p'); meta.className='meta'; meta.textContent = item.period + ' • ' + item.location;
+        const ul = document.createElement('ul');
+        item.bullets.forEach(b => { const li = document.createElement('li'); li.textContent = b; ul.appendChild(li) });
+        a.appendChild(h); a.appendChild(meta); a.appendChild(ul);
+        expRoot.appendChild(a);
+      })
+    }
+
+    // projects
+    const projRoot = el('res-projects');
+    if(projRoot){
+      projRoot.innerHTML = '';
+      data.projects.forEach(p => {
+        const art = document.createElement('article'); art.className='project';
+        const h = document.createElement('h4'); h.textContent = p.title;
+        const pEl = document.createElement('p'); pEl.textContent = p.desc;
+        art.appendChild(h); art.appendChild(pEl); projRoot.appendChild(art);
+      })
+    }
+  }
+
+  // --- Debug helper: show stored JSON and quick refresh (only when ?debug=1 is present)
+  function setupDebug(){
+    try{
+      const params = new URLSearchParams(window.location.search);
+      if(!params.get('debug')) return;
+      const dbg = document.createElement('div');
+      dbg.id = 'rs-debug';
+      Object.assign(dbg.style, {position:'fixed',left:12,bottom:12,width:'320px',maxHeight:'60vh',overflow:'auto',background:'rgba(0,0,0,0.85)',color:'#fff',padding:'10px',borderRadius:'8px',zIndex:99999,fontSize:'12px'});
+      const pre = document.createElement('pre'); pre.style.whiteSpace='pre-wrap'; pre.style.margin='0 0 8px 0';
+      const btn = document.createElement('button'); btn.textContent='Refresh'; btn.style.marginRight='8px';
+      btn.addEventListener('click', ()=>{ try{ render(); pre.textContent = JSON.stringify(loadData(), null, 2)}catch(e){ pre.textContent = String(e)} });
+      const clearBtn = document.createElement('button'); clearBtn.textContent = 'Clear storage'; clearBtn.addEventListener('click', ()=>{ localStorage.removeItem(STORAGE_KEY); location.reload() });
+      dbg.appendChild(btn); dbg.appendChild(clearBtn);
+      dbg.appendChild(pre);
+      document.body.appendChild(dbg);
+      pre.textContent = JSON.stringify(loadData(), null, 2);
+      console.log('[resume] debug panel initialized');
+    }catch(e){ console.warn('debug init failed', e) }
+  }
+
+  // expose for edit page
+  window.resumeStorage = {
+    load: loadData,
+    save: saveData,
+    render: render
+  };
+
+  // Listen for storage events (fired in other tabs when localStorage changes)
+  window.addEventListener('storage', function(e){
+    if(e.key === STORAGE_KEY){
+      try{ render(); }catch(err){}
+    }
+  });
+
+  // Listen for BroadcastChannel messages (faster, works in same-origin contexts)
+  if(bc){
+    bc.onmessage = function(ev){
+      if(ev && ev.data && ev.data.type === 'updated'){
+        try{ render(); }catch(err){}
+      }
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    try{ render(); }catch(e){ console.error(e) }
+    try{ setupDebug(); }catch(e){}
+  });
+
+})();
